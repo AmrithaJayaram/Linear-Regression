@@ -1,0 +1,76 @@
+data<-read.csv("C://Users//91958//Desktop//Linear_Regression//cal_data.csv")
+head(data)
+
+summary(data)
+cor(data)
+
+# correlation test
+# H0: there exists no linear relationship between the variables
+# H1: there exists linear relationship between the variables
+cor.test(data$x1,data$y)
+# p value is greater than 0.05, accept H0 implies there exists no correlation
+# between x and y
+
+cor.test(data$x2,data$y)
+# the p value is less than 0.05, reject H0 implies there exists correlation 
+# between x2 and y
+
+library(corrplot)
+corr = round(cor(data),2)
+corrplot(corr,"square")
+
+# fitting multiple linear regression model
+m1<-lm(data$y~.,data=data)
+summary(m1)
+# The model is not a good fit 
+
+# suitability of models
+library(olsrr)
+ols_step_all_possible(m1)
+# the suitable model is simple linear regression with x2 as its independent
+# variable.
+
+# Normality plot
+plot(m1,which=1)
+# the residual versus fitted model exhits a downward linear trend discrediting
+# the model assumption of y = beta_0+X1beta1+e. As e value falls there
+# is a constant increase or gradual increase in the fitted values. As per
+# the statement the model gets transformed as follow - y = beta_0+X1beta1-e
+# But the points lie closer to the regression line so we can say that 
+# there are normally distributed
+
+# we can also observer that there is a presence of a very strong outlier
+# heavily influencing the dependent variable - clathrate formation. The 10th 
+# observation is extremely influential.
+
+# identification of outliers
+boxplot(data,col=rainbow(c(23)),main="representation of outliers")
+# the graph represents the presence of highly infuential variable, which 
+# impairs the analysis of the multiple linear regression model.
+
+# Treatment of outliers
+d1<-data[-10,]
+boxplot(d1,main="box plot after treatment of outlier",col = rainbow(c(12)))
+
+# fitting model after outlier treatment 
+m2<-lm(d1$y~.,data=d1)
+summary(m2)
+# after treatment of outlier, the model is a good fit, the residual standard
+# error is low and the R^2 value is also good.
+plot(m2,which=2)
+shapiro.test(residuals(m2))
+# the p value is greater than 0.05, which implies the residuals are normally
+# distributed (heavy tailed - increased concentration of observation in the tail
+# areas)
+
+# checking for multicollinearity
+library(car)
+vif(m2)
+
+library(mctest)
+omcdiag(m2)
+# from the test for multicollinearity, we can conlcude that there is no
+# presence of multicollineartiy after the treatment of the highly
+# influential variable
+
+# Multicollinearity is not a big problem in clathrate formation dataset.
