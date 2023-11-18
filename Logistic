@@ -1,0 +1,85 @@
+library(psych)
+library(ISLR)
+data<-read.csv("C://Users//91958//Desktop//Linear_Regression//logistic.csv")
+head(data)
+summary(data)
+d1<-data[,-4]
+head(d1)
+
+# correlation of variables
+cor(d1)
+
+# fitting of logistic model
+attach(data)
+l1<-glm(Home_Ownership_Status~Income,data=data,family = "binomial")
+summary(l1)
+# the null deviance tells how much the model responds to intercept term only. The 
+# residual deviance tells how much the model responds to all the independent variables
+# The goodness of fit of the model is estimated by taking the difference between the 
+# null deviance and residual deviance. Greater the difference better is the fitted
+# model.
+
+# the difference between the residual and null deviance of the housing ownership status
+# taken with respect to income of the family.
+
+# finding the probabilites of each households
+prob = predict(l1,type="response")
+t1<-cbind(Home_Ownership_Status,prob)
+t1
+
+# determining the cutoff
+cutoff<-ifelse(prob<0.5,0,1)
+table(Home_Ownership_Status,cutoff)
+# As per the cutoff, the number of households who replied yes is 7 and number of 
+# households who have replied no is also 7. The number who actually replied yes but
+# forecasted as no is 2. And the number of households who actually replied no but
+# forcasted as yes is 4.
+
+# Accuracy under the curve
+AUC = (7+7)/(7+7+4+2)
+AUC
+# Thus there is a 70% accuracy in the model built for predicting the ownership status
+# of about 25 households.
+
+# dataset 2 - Credit Card Default Data
+attach(Default)
+head(Default)
+# Since student is a categorical variable, pearson correlation coefficient cannot
+# be used. On performing correlation coefficient test, there exists weak linear
+# association between balance and income
+cor.test(balance,income)
+
+l2<-glm(default~income+balance,data=Default,family = "binomial")
+summary(l2)
+# the variables are statistically significant since the p value is greater than 0.05
+# The difference between null deviance and residual deviance is bigger. However, the
+# AIC value is too big. Usually a model with lower AIC value is prefered. Hence, we
+# can conclude that the model is moderately suitable for explaining the default
+# credit payment by the students
+plot(l2)
+
+# predicting the values for each variables
+prob2<-predict(l2,type="response")
+head(cbind(default,prob2))
+
+Predicted_data <- data.frame(Income=seq(min(Income), max(Income),len=500))
+plot(default~income,data=Default)
+lines(default~income,Predicted_data,lwd=2)
+
+# desciding the cutoff value 
+cutoff1<-ifelse(prob2<0.05 ,0,1)
+table(default,cutoff1)
+
+# AUC
+AUC1<-(8699+968)/(8699+968+51+282)
+AUC1
+# 96.67% assurance can be given that the datapoints will lie in either of the classes
+# true positive or true negative. As the cutoff value moves closer to 0, the AUC value
+# increase. To estimate the cutoff value we can use Youden's Index or also referred 
+# to as the J index.
+
+m1<-lm(mtcars$mpg~.,data=mtcars)
+summary(m1)
+mtcars$vs<-as.factor(mtcars$vs)
+m2<-lm(mtcars$mpg~.,data=mtcars)
+summary(m2)
