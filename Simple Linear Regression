@@ -1,0 +1,152 @@
+data<-read.csv("C:\\Users\\91958\\Desktop\\weight_bp.csv")
+head(data)
+summary(data)
+
+# the independent variable - Weight
+# the dependent variable - Systolic blood pressure
+
+# Question 1: Obtain the scatter plot and Interpret it
+
+plot(data$weight,data$BP,main = "Weight and Blood Pressure",xlab = "weight"
+     ,ylab="Blood Pressure",col=rainbow(9))
+
+# Interpretation
+# Scatter plot is a plot that is used to ascertain the type and 
+# degree of linear association between the dependent and independent
+# variable.
+# An upwards line implies positive correlation between the two variable
+# and a downward line implies a negative correlation between the two
+# varaibles and lastly when no particular linear pattern can be 
+# determined there exists no or neglible linear association between
+# the variable.
+
+# From the scatter plot obtained for BP and weight, we can conclude 
+# the plot is almost upward sloping hence indicating a positive 
+# correlation. This conjecture can be verified by performing karl 
+# pearson correlation test.
+cor(data[,-1])
+# The correlation level between weight and blood pressure is strong.
+# Hence our conjecture about the linear relationship between weight
+# and blood pressure is true.
+
+# Question 2: Find a regression line connecting the variables 
+# systolic pressure and weight. Interpret the plot, intercept term 
+# and regression coefficients.What do you infer from the sign of 
+# regression coefficient?
+
+slr = lm(data$BP~data$weight)
+summary(slr)
+anova(slr)
+
+# Interpretation of model
+# It is a simple linear regression model explaining the linear 
+# relationship between systolic blood pressure and weight. The 
+# dependent variable is defined to be systolic blood pressure and
+# the independent variable is defined to be weight. Weight influence
+# the blood pressure of an individual. More heavier the body mass, 
+# higher the blood pressure.
+
+# In a linear regression model, the principle component is - intercept,
+# slope and error. This can be expressed as 
+#                          Y = a + bX + e
+# so rewriting in term of weight and blood pressure we obtain
+#                 Sytolic BP = a + b*Weight + e
+
+# From the summary of the simple linear regression model we can conclude
+# that Y = 69.10437 + 0.41942*X + 8.681.
+# The intercept term is defined as the average or mean blood pressure
+# when the weight is almost zero or neglible. The intercept value is
+# positive indicating a medium or almost normal blood pressure. 
+
+# The slope term defined as 1 unit change result in x unit change in
+# the dependent variable. The slope is given to be 0.41942. A one
+# percent increase in the weight of the individual results in 
+# 0.41942 increase in the systolic blood pressure. The slope is a 
+# positive quantity impling that both the variable move in the same 
+# direction i.e. As the weight increases then the blood pressure
+# increases in positive direction.
+
+# Hypothesis Testing for the Regression coefficients - a and b
+
+# H0: a = 0
+# H1: a not equal to 0
+
+# The acceptance and rejection of the hypothesis depends on the p 
+# value. If the p value is less than 0.05 (5% significance), we accept
+# the alternative hypothesis or else accept the null hypothesis.From
+# the summary table we can conclude that both, intercept is significant
+# or otherwise we can say that a is linearly dependent.
+
+# H0: b = 0
+# H1: b not equal to 0
+
+# The acceptance and rejection of the hypothesis depends on the p 
+# value. If the p value is less than 0.05 (5% significance), we accept
+# the alternative hypothesis or else accept the null hypothesis.From
+# the summary table we can conclude that, slope is significant
+# or otherwise we can say that b is linearly dependent.
+
+# The residual or standard error explains the deviation of the fitted
+# values from the observed values. The residual value is estimated
+# to be 8.681. From a dataset with only 26 as its population size, this
+# residual value is big indicating the presence of potential outliers
+# that may highly influence the observed values.
+
+# R^2 or the coefficient of determination tells us how well the 
+# independent variable explains the dependent variable. The R^2
+# value is estimated to be 0.5815. It means about 58% variations in
+# systolic blood pressure is explained by weight.
+
+# The overall significance of the parameters cab be verified from
+# the anova table. ANOVA or analysis of varaiance, divides the total
+# variance into 2 - regression sum of squares and residual sum of 
+# squares.
+
+# H0: a and b = 0
+# H1: a and b not equal 0
+
+# From the anova table, we can conclude that the independent variable
+# weight is significant since the p value is less than 0. hence we
+# accept H1 and conclude that they are siginficant and there exists
+# a linear relationship between BP and weight.
+
+# construction of regression line
+abline(slr)
+
+# Intepretation of regression line
+# From the graph we can conclude that there are only few values that
+# lie closer to the regression line. Points that lie excessively far
+# from the line may potentially influence the study of the variable.
+
+
+# Question 3: Obtain the fitted values. Does the sum of fitted 
+# values is equal to the sum of observed values
+
+fitted_value = fitted.values(slr)
+fitted_value
+
+sum(fitted_value)
+sum(data$BP)
+
+# Interpretation 
+# The sum of the observed values is equal to the sum of the fitted 
+# values. This property is verified by finding the sum of the 
+# observed bp value and fitted bp value. The property holds.
+
+residual_values =  residuals(slr)
+residual_values
+sum(residual_values)
+
+# Interpretation
+# The sum of the error terms is 0 or almost zero. The value obtained
+# for the residuals is 4.440892e-15 that is the value is tending
+# to 0. Hence, we can also say that mean of the error term is 0
+
+qqplot(fitted_value,residual_values)
+
+# Interpretation
+# Q-Q plot or quantitle-qunatitle plot also called as the normality
+# curve, is used to check graphically if the residual values are 
+# normally distributed. From the graph we can conclude that its tail
+# probabilities is extending to the right more, so it is positive 
+# skewed.
