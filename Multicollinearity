@@ -1,0 +1,131 @@
+data<-read.csv("C:\\Users\\91958\\Desktop\\Linear_Regression\\tfr.csv")
+summary(data)
+head(data)
+# the dataset is about the total fertility rate (dependent variable).
+# A multiple linear regression model is fitted to identify or estimate
+# the variations in TFR is explained by the 10 independent variable
+
+# correlation
+round(cor(data),2)
+
+# testing the correlation between the variables
+#H0: correlation is equal to 0
+#H1: correlation is not equal to 0
+cor.test(data$x1,data$y)
+cor.test(data$x2,data$y)
+cor.test(data$x3,data$y)
+cor.test(data$x4,data$y)
+cor.test(data$x5,data$y)
+cor.test(data$x6,data$y)
+cor.test(data$x7,data$y)
+cor.test(data$x8,data$y)
+cor.test(data$x9,data$y) # not significant for study
+cor.test(data$x10,data$y)
+
+# since the 9th independent variable(percent of population with improved water 
+# supply) is not significant, it is removed for improved study
+d1<-data[,-10]
+head(d1)
+
+# matrix scatter plot
+d1_1<-d1[,c("y","x1","x2","x3","x4","x5")]
+d1_2<-d1[,c("y","x6","x7","x8","x10")]
+corr1<-cor(d1_1)
+corr2<-cor(d1_2)
+
+pairs(d1_1)
+pairs(d1_2)
+
+library(GGally)
+library(ggplot2)
+ggpairs(d1_1)
+ggpairs(d1_2)
+
+library(psych)
+pairs.panels(d1_1)
+pairs.panels(d1_2)
+
+# different scatter plot representing the relationship with the 
+# dependent variabel
+library(corrplot)
+corrplot(corr1,method = "number")
+corrplot(corr1,method="number",type="upper")
+corrplot.mixed(corr1,upper="number",lower="square")
+corrplot.mixed(corr1,upper="number",lower="ellipse")
+
+corrplot(corr2,method = "number")
+corrplot(corr2,method="number",type="upper")
+corrplot.mixed(corr2,upper="number",lower="square")
+corrplot.mixed(corr2,upper="number",lower="ellipse")
+
+corrplot(corr2,method="color")
+corrplot(corr1,method="color")
+
+corr1
+corr2
+# from the figure and correlation value obtained, all independent 
+# variables except for percentage of population receiving improved
+# water supply is highly correlated with the TFR. We also observe 
+# that certain independent variables is related to one another.
+# x1 is linearly related to x2 and x4
+# x6 is linearly related to x7,x8 and x10
+# x7 is linearly related to x8 and x10.
+
+# fitting multiple linear regression model
+mlrm = lm(d1$y~.,data=d1)
+summary(mlrm)
+# from the summary of table, we observe that only three out of 10 variable
+# chosen variable is significant.
+# standard error value is low, which means that even if only three variable
+# explain the variations in Y, the deviations is not extreme.
+# the pvalue is less than 0.05, which implies, the model is good fit
+# which may be because the 3 variables might be highly signifcant to 
+# cover the loss of information caused due to the insignificane of
+# the other independent variable.
+# The adjusted R square value is computed to be 0.8421, which means
+# 84% variations in Y explained by the significant variable.
+
+# Multicollinearity
+library(car)
+v = vif(mlrm)
+print(v)
+barplot(v,ylim=c(1,10),col = rainbow(12),main="Representation of
+        Variance Inflation Factor")
+abline(h=5)
+# x3 and x5 have low multicollinarity
+# x2,x4,x7,x8,x10 have moderate to little high multicollinarity, 
+# which can be altered by deleting its related variable or increasing
+# the sample size
+# x1 and x6 have severe multicollinearity.
+
+# Test2 - Farrer-Glauber Test
+library(mctest)
+omcdiag(mlrm)
+# expect for theil's method, other method detect the presence of 
+# multicollinarity.
+
+# Test3 - Eigen values and condition index
+library(olsrr)
+ols_eigen_cindex(mlrm)
+# condition index between 10 and 30 is indicated multicollinarity
+# but not severe. If exceeds 30, very strong multicollinearity.
+
+# Autocorrelation
+library(car)
+# H0: no autocorrelation
+# H1: there is autocorrelation present 
+durbinWatsonTest(mlrm)
+# p value is greater than 0.05, which implies there is no presence
+# of autocorrelation.
+
+# Test2 - Constant variance
+library(lmtest)
+#perform Breusch-Pagan Test
+#H0: homoscedastic/constant variance
+#H1: heteroscedastic/not constant variance
+bptest(mlrm)
+# p value is greater than 0.05, we accept H0
+
+# Confidence Interval
+confint(mlrm,level = 0.95)
+confint(mlrm,level=0.99)
