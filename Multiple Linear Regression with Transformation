@@ -1,0 +1,144 @@
+data<-read.csv("C:\\Users\\91958\\Desktop\\Linear_Regression\\car_sales.csv")
+head(data)
+summary(data)
+
+round(cor(data),2)
+# correlation test
+# H0: there exists no correlation 
+# H1: there is correlation between variables
+
+cor.test(data$price,data$wheelbase)
+cor.test(data$price,data$carlength)
+cor.test(data$price,data$carwidth)
+cor.test(data$price,data$carheight)
+# p value is greater than 0.05, which means there exists no correlation
+# price and car height
+cor.test(data$price,data$curbweight)
+cor.test(data$price,data$enginesize)
+cor.test(data$price,data$boreratio)
+cor.test(data$price,data$stroke)
+# p value is greater than 0.05, which means there exists no correlation 
+# between price and stroke
+cor.test(data$price,data$compressionratio)
+# p value is greater than 0.05, which means there exists no correlation
+# between price and compression ratio
+cor.test(data$price,data$horsepower)
+
+# out of the 10 independent variables defined to explain the linear
+# relationship of price, three variables is insignificant. So for improved
+# study of the relationship of price only 7 variables is considered.
+d1<-data[,-c(5,9,10)]
+head(d1)
+
+# linearity can also be verified graphically 
+pairs(d1)
+library(ggplot2)
+library(GGally)
+ggpairs(d1)
+
+library(psych)
+pairs.panels(d1)
+
+# correlation plot
+library(corrplot)
+corrplot(cor(d1),method = "number")
+corrplot(cor(d1),method = "square")
+
+# 2nd Property
+errorterm = residuals(d1)
+sum(errorterm)
+# expected value of error term is zero
+
+# Fitting a mulitple linear regression model
+mlrm<-lm(d1$price~.,data = d1)
+summary(mlrm)
+step(mlrm,direction="both")
+
+mlrm2<-lm(d1$price~d1$carwidth+d1$curbweight+d1$enginesize+d1$horsepower,data = d1)
+summary(mlrm2)
+
+# third property
+plot(mlrm,which = 1)
+
+# constant variance or homoscedasiticity
+# H0: constant variance
+# H1: not constant variance
+library(lmtest)
+bptest(mlrm)
+# constant variance property is not statisfied
+
+library(car)
+# H0: no non-constant variance
+# H1: non-constant variance
+ncvTest(mlrm)
+
+library(caret)
+p1<-BoxCoxTrans(d1$price)
+
+d2<-cbind(d1, new=predict(p1, d1$price))
+d3<-lm(d2$price~.,data=d2)
+bptest(d3)
+summary(d3)
+# there is still heteroscedasticity present after box cox transformation
+
+# Property 4: multicollinearity
+library(car)
+vif(d3)
+library(mctest)
+omcdiag(mlrm)
+
+# correction of multicollinearity
+library(glmnet)
+y<-d1$price
+x<-data.matrix(d1[,c('wheelbase','carlength','carlength','curbweight','enginesize','boreratio','horsepower')])
+model <- glmnet(x, y, alpha = 0)
+summary(model)
+
+#perform k-fold cross-validation to find optimal lambda value
+cv_model <- cv.glmnet(x, y, alpha = 0)
+
+#find optimal lambda value that minimizes test MSE
+best_lambda <- cv_model$lambda.min
+best_lambda
+
+
+#produce plot of test MSE by lambda value
+plot(cv_model) 
+
+#find coefficients of best model
+best_model <- glmnet(x, y, alpha = 0, lambda = best_lambda)
+coef(best_model)
+plot(model, xvar = "lambda")
+
+# residual analysis
+plot(d3,which=1)
+# the residual vs fitted value tells us about the linearity and constant variance condition.
+# The variance is not constant but there exists a linear relationship
+# between the fitted and the residual value.
+
+plot(d3,which=2)
+# Q-Q plot tells us about the normality assumption. From the figure we can 
+# conclude that it is positively skewed and the data points lie extremly closer
+# to the regression line.
+
+plot(d3,which=3)
+abline(h=2)
+abline(h=0)
+# Scale-location plot tells us about homoscedasticity.From the figure
+# conclusive evidence cannot be obtained regarding the homoscadasticity
+# property. BP test is performed to obtain viable conclusion about constant
+# variance. From the test we conclude that the fitted multiple linear regression
+# model is heteroscedastic.
+
+plot(d3,which=4)
+# The cook's distance plot tells us about the highly influential observations
+# found in the dependent variable. From the graph we can conlcude that
+# are three highly influential variables that can be found in the dependent
+# variable Price. (17th, 75th and 129th)
+
+plot(d3, which=5)
+# this plot tells us about the distance between the influential variables
+# in the dependent variable (cook's distance) and the influential variable in 
+# the independent variable (leverage). The distance between the cooks distance
+# and leverage is good and lies well within the cook's distance. Which implies
+# there is not presence of outliers which may impact the study of the price.
