@@ -1,0 +1,103 @@
+data<-read.csv("C:\\Users\\91958\\Desktop\\Linear_Regression\\property.csv")
+head(data)
+summary(data)
+
+# find correlation between the variable
+corr1 = round(cor(data),2)
+corr1
+
+# correlation test
+# H0: there exists no or negligible linear relationship between the 2 variable
+# H1: there exists a linear relationship between the 2 variables
+
+cor.test(data$y,data$x1)
+# there exists a strong linear relationship between selling price and tax
+cor.test(data$y,data$x2)
+# there exists yet another strong linear relationship between selling price
+# and number of bath
+cor.test(data$y,data$x3)
+# there exists moderately strong linear relationship between selling price
+# and loft size
+cor.test(data$y,data$x4)
+# there exists strong linear relationship between selling price and number of 
+# living stalls
+cor.test(data$y,data$x5)
+# there exists moderate linear relationship between selling price and number
+# of garage stalls
+cor.test(data$y,data$x6)
+# there exists moderate linear relationship between selling price and number of
+# room
+cor.test(data$y,data$x7)
+# there exists weak correlation or no correlation based on the p value(greater
+# than 0.05)
+cor.test(data$y,data$x8)
+# there exists moderate correlation between selling price and age of home
+cor.test(data$y,data$x9)
+# there exists no correlation between selling price and number of fireplaces
+# conclusion obtained from greater p value.
+
+# graphical representation
+pairs(data)
+library(ggplot2)
+library(GGally)
+ggpairs(data)
+
+library(psych)
+pairs.panels(data)
+
+library(corrplot)
+corrplot(corr1,method = "number")
+corrplot(corr1,method="number",type="upper")
+
+# fitting of regression
+mlrm<-lm(data$y~.,data=data)
+summary(mlrm)
+
+# checking normality condition
+# H0: the error is normally distributed
+# H1: the error is not normally distributed
+shapiro.test(mlrm$residuals)
+# since p value greater than 0.05, so we accept H0, impling the errors are 
+# normally distributed
+
+plot(mlrm,which=2)
+
+d1<-data[c(-17,-24),]
+# the 17th and 24th observation were highly influential,after its treatment
+# the adjusted R^2 value has increased approximately 10%
+mlrm1<-lm(d1$y~.,data=d1)
+summary(mlrm1)
+plot(mlrm1,which=5)
+
+# checking for multicollinearity
+library(car)
+v = vif(mlrm)
+v
+v1 = vif(mlrm1)
+v1
+# we can notice than after the removal of extreme values, the vif values 
+# decrease
+barplot(v,ylim=c(1,10),col = rainbow(12),main="Representation of
+        Variance Inflation Factor")
+abline(h=5)
+barplot(v1,ylim=c(1,10),col = rainbow(12),main="Representation of
+        Variance Inflation Factor")
+abline(h=5)
+# treatment is removal of variables with higher vif value
+mlrm2<-lm(d1$y~d1$x2+d1$x3+d1$x4+d1$x5+d1$x8+d1$x9,data=d1)
+summary(mlrm2)
+
+# checking for autocorrelation
+# H0: there is no autocorrelation
+# H1: there is autocorrelation
+library(car)
+durbinWatsonTest(mlrm2)
+durbinWatsonTest(mlrm)
+durbinWatsonTest(mlrm1)
+# Since p value is greater than 0.05, so we accept H0
+
+# Constant Variance
+# H0: Variance is constant / Homoscedasticity
+# H1: Variance is not constant / Heteroscedastic
+library(lmtest)
+bptest(mlrm)
